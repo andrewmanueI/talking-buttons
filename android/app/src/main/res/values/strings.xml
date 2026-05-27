@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Talking Buttons</string>
+    <string name="title_activity_main">Talking Buttons</string>
+    <string name="package_name">com.talkingbuttons.app</string>
+    <string name="custom_url_scheme">com.talkingbuttons.app</string>
+</resources>
