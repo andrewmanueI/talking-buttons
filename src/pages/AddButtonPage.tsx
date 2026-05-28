@@ -71,22 +71,21 @@ export default function AddButtonPage() {
   };
 
   const steps: Array<'record' | 'name' | 'image' | 'color' | 'preview'> = ['record', 'name', 'image', 'color', 'preview'];
-  const stepLabels = isEdit
-    ? [`1. ${t('recordAudio')}`, `2. ${t('buttonName')}`, `3. ${t('chooseImage')}`, `4. ${t('chooseColor')}`, `5. ${t('save')}`]
-    : [`1. ${t('recordAudio')}`, `2. ${t('buttonName')}`, `3. ${t('chooseImage')}`, `4. ${t('chooseColor')}`, `5. ${t('save')}`];
+  const stepIcons: Record<string, string> = { record: '🎙', name: '📝', image: '🖼', color: '🎨', preview: '✅' };
 
   return (
     <AnimatedScreen>
       <main className="page add-page">
         <div className="add-steps">
-          {steps.map((s, i) => {
+          {steps.map((s) => {
             let done = false;
             if (s === 'record') done = !!audioBlob;
             if (s === 'name') done = name.trim().length > 0;
             if (s === 'image') done = !!imageData;
             return (
               <div key={s} className={`step-indicator ${step === s ? 'active' : ''} ${done ? 'done' : ''}`}>
-                {stepLabels[i]}
+                <span className="step-icon">{stepIcons[s]}</span>
+                <span className="step-label">{t(`stepLabel_${s}` as any)}</span>
               </div>
             );
           })}

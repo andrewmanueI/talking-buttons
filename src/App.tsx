@@ -20,7 +20,14 @@ function Background({ settings }: { settings: ReturnType<typeof useSettings>['se
     style.backgroundRepeat = 'no-repeat';
   }
 
-  return <div className="bg-layer" style={style} />;
+  return (
+    <>
+      <div className="bg-layer" style={style} />
+      {settings.backgroundType === 'image' && settings.backgroundImage && (
+        <div className="bg-scrim" />
+      )}
+    </>
+  );
 }
 
 export default function App() {
@@ -31,7 +38,7 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className="app" data-bg-type={settings.backgroundType}>
       <Background settings={settings} />
       <TopBar />
       <Routes>

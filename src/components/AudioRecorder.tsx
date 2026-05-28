@@ -8,9 +8,13 @@ interface Props {
 }
 
 function errorKey(kind: string) {
-  if (kind === 'denied') return 'micDenied';
-  if (kind === 'nomic') return 'micNotFound';
-  return 'micError';
+  switch (kind) {
+    case 'denied':      return 'micDenied';
+    case 'nomic':       return 'micNotFound';
+    case 'unavailable': return 'micUnavailable';
+    case 'recorder':    return 'micRecorderError';
+    default:            return 'micError';
+  }
 }
 
 export default function AudioRecorder({ audioBlob, audioUrl, onAudioReady }: Props) {
@@ -55,16 +59,9 @@ export default function AudioRecorder({ audioBlob, audioUrl, onAudioReady }: Pro
       {recorder.error && (
         <div className="recorder-error-block">
           <p className="recorder-error">{t(errorKey(recorder.error.kind))}</p>
-          {recorder.error.kind === 'denied' && (
-            <button className="tb-btn btn-secondary" onClick={handleStart}>
-              {t('tryAgain')}
-            </button>
-          )}
-          {recorder.error.kind !== 'denied' && (
-            <button className="tb-btn btn-secondary" onClick={recorder.reset}>
-              {t('tryAgain')}
-            </button>
-          )}
+          <button className="tb-btn btn-secondary" onClick={handleStart}>
+            {t('tryAgain')}
+          </button>
         </div>
       )}
 

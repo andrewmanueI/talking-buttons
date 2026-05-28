@@ -7,6 +7,29 @@ import AnimatedScreen from '../components/motion/AnimatedScreen';
 import ConfirmDialog from '../components/ConfirmDialog';
 import type { BackgroundType } from '../types';
 
+function resizeWallpaper(file: File, maxSize: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onload = () => {
+        const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 const BG_COLORS = [
   { value: '#F6F3EE', key: 'softCream' },
   { value: '#F8F5F0', key: 'warmWhite' },
@@ -27,6 +50,7 @@ export default function SettingsPage() {
   const { settings, update } = useSettings();
   const { t } = useLanguage();
   const [showReset, setShowReset] = useState(false);
+  const [wallpaperError, setWallpaperError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleReset = async () => {
@@ -35,17 +59,36 @@ export default function SettingsPage() {
     window.location.reload();
   };
 
-  const handleWallpaperUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      update({ backgroundType: 'image', backgroundImage: reader.result as string });
-    };
-    reader.readAsDataURL(file);
+  const handleWallpaperUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file) {
+      console.log('[SettingsPage] no file selected');
+      return;
+    }
+
+    console.log('[SettingsPage] file selected:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    });
+
+    try {
+      const dataUrl = await resizeWallpaper(file, 1280);
+      console.log('[SettingsPage] resized, dataUrl length:', dataUrl.length);
+      setWallpaperError(null);
+      update({ backgroundType: 'image', backgroundImage: dataUrl });
+    } catch (err: any) {
+      console.error('[SettingsPage] wallpaper upload failed:', err?.message);
+      setWallpaperError(err?.message || 'Failed to load image');
+    }
+
+    // Clear input so selecting the same file again still fires onChange
+    input.value = '';
   };
 
   const handleBgTypeChange = (type: BackgroundType) => {
+    setWallpaperError(null);
     if (type === 'none') update({ backgroundType: 'none', backgroundImage: undefined });
     if (type === 'color') update({ backgroundType: 'color', backgroundImage: undefined });
     if (type === 'image') update({ backgroundType: 'image' });
@@ -117,12 +160,21 @@ export default function SettingsPage() {
                     {t('removeWallpaper')}
                   </button>
                 )}
+                {wallpaperError && (
+                  <p className="wallpaper-error">{wallpaperError}</p>
+                )}
                 {settings.backgroundImage && (
                   <div className="wallpaper-preview">
                     <img src={settings.backgroundImage} alt="Wallpaper preview" />
                   </div>
                 )}
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleWallpaperUpload} style={{ display: 'none' }} />
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleWallpaperUpload}
+                  style={{ display: 'none' }}
+                />
               </div>
             )}
           </div>
