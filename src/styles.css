@@ -1596,3 +1596,33 @@ html, body, #root {
   background: rgba(0,0,0,0.12);
   border-radius: 4px;
 }
+
+/* ===== TOAST ===== */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.toast-overlay {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  animation: toast-in 0.25s ease-out;
+  cursor: default;
+}
+
+.toast-overlay.toast-exiting {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.toast-body {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}

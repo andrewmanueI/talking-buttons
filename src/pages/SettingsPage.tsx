@@ -5,6 +5,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { clearAllData, exportAllData, importAllData } from '../db';
 import AnimatedScreen from '../components/motion/AnimatedScreen';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Toast from '../components/Toast';
 import type { BackgroundType, ExportData } from '../types';
 
 function resizeWallpaper(file: File, maxSize: number): Promise<string> {
@@ -51,8 +52,10 @@ export default function SettingsPage() {
   const { t } = useLanguage();
   const [showReset, setShowReset] = useState(false);
   const [importPending, setImportPending] = useState<ExportData | null>(null);
+  const [importFileName, setImportFileName] = useState<string>('');
   const [importError, setImportError] = useState<string | null>(null);
   const [wallpaperError, setWallpaperError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const importFileRef = useRef<HTMLInputElement>(null);
 
@@ -102,11 +105,13 @@ export default function SettingsPage() {
       const data = await exportAllData();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
+      const filename = `talking-buttons-backup-${new Date().toISOString().slice(0, 10)}.json`;
       const a = document.createElement('a');
       a.href = url;
-      a.download = `talking-buttons-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
+      setToast(`Exported: ${filename}`);
     } catch (err) {
       console.error('[SettingsPage] export failed', err);
     }
@@ -126,6 +131,7 @@ export default function SettingsPage() {
         throw new Error('Invalid format');
       }
 
+      setImportFileName(file.name);
       setImportPending(parsed);
     } catch (err) {
       console.error('[SettingsPage] import parse failed', err);
@@ -139,7 +145,9 @@ export default function SettingsPage() {
     if (!importPending) return;
     try {
       await importAllData(importPending);
-      window.location.reload();
+      setImportPending(null);
+      setToast(`Imported from: ${importFileName}`);
+      setTimeout(() => window.location.reload(), 1500);
     } catch (err) {
       console.error('[SettingsPage] import failed', err);
     }
@@ -273,6 +281,8 @@ export default function SettingsPage() {
         <div className="settings-back">
           <button className="tb-btn btn-secondary" onClick={() => navigate('/board')}>{t('backToBoard')}</button>
         </div>
+
+        {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
       </main>
     </AnimatedScreen>
   );
