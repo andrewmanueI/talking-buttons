@@ -1,7 +1,7 @@
 {
   "name": "talking-buttons",
   "private": true,
-  "version": "1.1.7",
+  "version": "1.1.8",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,7 +21,8 @@
     "idb": "^8.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2"
+    "react-router-dom": "^6.26.2",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/react": "^18.3.11",
