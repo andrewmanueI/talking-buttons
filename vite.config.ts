@@ -9,7 +9,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    VitePWA({
+    !process.env.VITE_DISABLE_PWA && VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
@@ -29,5 +29,5 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
       },
     }),
-  ],
+  ].filter(Boolean),
 });
