@@ -51,15 +51,33 @@ export default function SoundButton({ button, onDelete, onRename }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
+  const ttsCancel = useRef(false);
 
   const play = useCallback(() => {
     if (playing) return;
 
     if (button.ttsText) {
       setPlaying(true);
-      TextToSpeech.speak({ text: button.ttsText, lang: language === 'id' ? 'id-ID' : 'en-US' })
-        .then(() => setPlaying(false))
-        .catch(() => setPlaying(false));
+      const words = button.ttsText.trim().split(/\s+/).filter(Boolean);
+      if (words.length <= 1) {
+        TextToSpeech.speak({ text: button.ttsText, lang: language === 'id' ? 'id-ID' : 'en-US' })
+          .then(() => setPlaying(false))
+          .catch(() => setPlaying(false));
+        return;
+      }
+      const lang = language === 'id' ? 'id-ID' : 'en-US';
+      ttsCancel.current = false;
+      (async () => {
+        for (const word of words) {
+          if (ttsCancel.current) break;
+          try {
+            await TextToSpeech.speak({ text: word, lang });
+          } catch {}
+          if (ttsCancel.current) break;
+          await new Promise(r => setTimeout(r, 800));
+        }
+        if (!ttsCancel.current) setPlaying(false);
+      })();
       return;
     }
 
@@ -85,19 +103,25 @@ export default function SoundButton({ button, onDelete, onRename }: Props) {
     }
   };
 
+  const cancelPlayback = useCallback(() => {
+    ttsCancel.current = true;
+    TextToSpeech.stop().catch(() => {});
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setPlaying(false);
+  }, []);
+
   const handlePointerDown = useCallback(() => {
     didLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
       didLongPress.current = true;
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      setPlaying(false);
+      cancelPlayback();
       setNewName(button.name);
       setMenuOpen(true);
     }, 600);
-  }, [button.name]);
+  }, [button.name, cancelPlayback]);
 
   const handlePointerUp = useCallback(() => {
     clearTimer();
@@ -110,14 +134,10 @@ export default function SoundButton({ button, onDelete, onRename }: Props) {
     e.preventDefault();
     clearTimer();
     didLongPress.current = true;
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    setPlaying(false);
+    cancelPlayback();
     setNewName(button.name);
     setMenuOpen(true);
-  }, [button.name]);
+  }, [button.name, cancelPlayback]);
 
   const handleRename = useCallback(() => {
     setMenuOpen(false);
