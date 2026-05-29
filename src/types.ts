@@ -1,7 +1,8 @@
 export interface SoundButton {
   id: string;
   name: string;
-  audioBlob: Blob;
+  audioBlob?: Blob;
+  ttsText?: string;
   imageData?: string;
   buttonColor?: string;
   order: number;
@@ -30,7 +31,8 @@ export interface SavedPreset {
 export interface PresetButton {
   id: string;
   name: string;
-  audioBlob: Blob;
+  audioBlob?: Blob;
+  ttsText?: string;
   imageData?: string;
   buttonColor?: string;
   order: number;

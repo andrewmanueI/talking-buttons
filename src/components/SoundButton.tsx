@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import type { SoundButton as SoundButtonType } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import ActionSheet from './ActionSheet';
@@ -53,6 +54,16 @@ export default function SoundButton({ button, onDelete, onRename }: Props) {
 
   const play = useCallback(() => {
     if (playing) return;
+
+    if (button.ttsText) {
+      setPlaying(true);
+      TextToSpeech.speak({ text: button.ttsText, lang: 'id-ID' })
+        .then(() => setPlaying(false))
+        .catch(() => setPlaying(false));
+      return;
+    }
+
+    if (!button.audioBlob) return;
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       audioRef.current.play();
@@ -65,7 +76,7 @@ export default function SoundButton({ button, onDelete, onRename }: Props) {
     audio.onerror = () => setPlaying(false);
     setPlaying(true);
     audio.play();
-  }, [button.audioBlob, playing]);
+  }, [button.audioBlob, button.ttsText, playing]);
 
   const clearTimer = () => {
     if (longPressTimer.current) {

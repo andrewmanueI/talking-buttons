@@ -52,7 +52,7 @@ export default function PresetsPage() {
   const handleLoadPreset = async () => {
     if (!loadTarget) return;
     await deleteAllButtons();
-    const restored: Array<{ id: string; name: string; audioBlob: Blob; imageData?: string; buttonColor?: string; order: number; createdAt: number }> = loadTarget.buttons.map((b) => ({
+    const restored = loadTarget.buttons.map((b) => ({
       id: b.id,
       name: b.name,
       audioBlob: b.audioBlob,
