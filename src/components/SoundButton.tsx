@@ -76,7 +76,7 @@ export default function SoundButton({ button, onDelete, onRename }: Props) {
     audio.onerror = () => setPlaying(false);
     setPlaying(true);
     audio.play();
-  }, [button.audioBlob, button.ttsText, playing]);
+  }, [button.audioBlob, button.ttsText, language, playing]);
 
   const clearTimer = () => {
     if (longPressTimer.current) {
