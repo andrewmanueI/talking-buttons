@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSettings } from '../db';
 import { AUDIO_CONSTRAINTS, classifyError, stopStream } from '../hooks/useAudioRecorder';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 // ── Types ─────────────────────────────────────────────────
 
-type CheckName = 'db' | 'mic' | 'audio';
+type CheckName = 'db' | 'mic' | 'audio' | 'tts';
 type CheckStatus = 'pending' | 'running' | 'pass' | 'fail';
 
 interface CheckResult {
@@ -27,6 +28,7 @@ const CHECK_LABELS: Record<CheckName, string> = {
   db:    'IndexedDB',
   mic:   'Microphone',
   audio: 'Audio Output',
+  tts:   'Text-to-Speech',
 };
 
 // ── Probes ─────────────────────────────────────────────────
@@ -66,6 +68,23 @@ async function probeMicrophone(): Promise<CheckResult> {
     stopStream(stream);
     const classified = classifyError(err);
     return { name: 'mic', status: 'fail', message: classified.message };
+  }
+}
+
+async function probeTts(): Promise<CheckResult> {
+  const isNative = !!(window as any).Capacitor;
+
+  try {
+    const result = await TextToSpeech.isLanguageSupported({ lang: 'id-ID' });
+    if (result.supported) {
+      return { name: 'tts', status: 'pass', message: 'TTS ready (id-ID)' };
+    }
+    return { name: 'tts', status: 'pass', message: 'TTS available but id-ID voice data missing' };
+  } catch (err: any) {
+    if (isNative) {
+      return { name: 'tts', status: 'fail', message: err?.message || String(err) };
+    }
+    return { name: 'tts', status: 'pass', message: 'TTS not available in browser' };
   }
 }
 
@@ -115,6 +134,7 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
     db:    { name: 'db',    status: 'pending', message: '' },
     mic:   { name: 'mic',   status: 'pending', message: '' },
     audio: { name: 'audio', status: 'pending', message: '' },
+    tts:   { name: 'tts',   status: 'pending', message: '' },
   });
   const mountTime = useRef(Date.now());
   const finishedRef = useRef(false);
@@ -127,6 +147,7 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
       ['db',    probeDatabase],
       ['mic',   probeMicrophone],
       ['audio', probeAudioOutput],
+      ['tts',   probeTts],
     ];
 
     for (const [name, fn] of probes) {
@@ -187,6 +208,7 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
       db:    { name: 'db',    status: 'pending', message: '' },
       mic:   { name: 'mic',   status: 'pending', message: '' },
       audio: { name: 'audio', status: 'pending', message: '' },
+      tts:   { name: 'tts',   status: 'pending', message: '' },
     });
     setPhase('checking');
     runProbes();
