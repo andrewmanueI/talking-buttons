@@ -994,38 +994,54 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 3px;
   text-align: center;
   font-weight: 600;
-  padding: 6px 2px;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.05);
+  padding: 8px 2px 6px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.04);
   color: var(--color-text-secondary);
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.25s, color 0.25s, transform 0.2s;
   overflow: hidden;
+  position: relative;
 }
 
 .step-icon {
-  font-size: 16px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: background 0.25s, color 0.25s;
 }
 
 .step-label {
-  font-size: clamp(8px, 2.2vw, 10px);
+  font-size: clamp(7px, 2vw, 10px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  letter-spacing: 0.01em;
 }
 
 .step-indicator.active {
   background: var(--color-primary);
   color: #fff;
+  transform: translateY(-1px);
+}
+
+.step-indicator.active .step-icon {
+  background: rgba(255,255,255,0.18);
 }
 
 .step-indicator.done {
   background: #d4edda;
   color: #2e7d32;
+}
+
+.step-indicator.done .step-icon {
+  background: rgba(46, 125, 50, 0.1);
 }
 
 .add-content {
