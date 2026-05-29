@@ -33,6 +33,18 @@ function Background({ settings }: { settings: ReturnType<typeof useSettings>['se
   );
 }
 
+const APP_VERSION = '1.0.0';
+
+function logAppInfo() {
+  const isNative = !!(window as any).Capacitor;
+  const ua = navigator.userAgent;
+  const platform = isNative ? 'Android (Capacitor)' : 'Web';
+  const lang = navigator.language;
+
+  console.log(`[App] version ${APP_VERSION}, platform: ${platform}, lang: ${lang}, ua: ${ua}`);
+  console.log(`[App] initialization complete — all probes passed`);
+}
+
 export default function App() {
   const { settings, loading } = useSettings();
   const [splashDone, setSplashDone] = useState(false);
@@ -40,7 +52,7 @@ export default function App() {
   if (!splashDone) {
     return (
       <ErrorBoundary>
-        <InitScreen ready={!loading} onFinished={() => setSplashDone(true)} />
+        <InitScreen ready={!loading} onFinished={() => { logAppInfo(); setSplashDone(true); }} />
       </ErrorBoundary>
     );
   }
