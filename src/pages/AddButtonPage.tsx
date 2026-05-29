@@ -45,10 +45,12 @@ export default function AddButtonPage() {
         setAudioBlob(existing.audioBlob);
         setAudioUrl(URL.createObjectURL(existing.audioBlob));
       }
-      setStep('name');
+      setStep(existing.ttsText ? 'image' : 'name');
       setInitialized(true);
     }
   }, [existing, initialized]);
+
+  const imageStepBack = mode === 'tts' ? 'tts' : 'name';
 
   const handleSave = async () => {
     if (mode === 'record') {
@@ -89,7 +91,7 @@ export default function AddButtonPage() {
   };
 
   const wizardSteps: Step[] = mode === 'tts'
-    ? ['tts', 'name', 'image', 'color', 'preview']
+    ? ['tts', 'image', 'color', 'preview']
     : ['record', 'name', 'image', 'color', 'preview'];
 
   const stepIcons: Record<string, string> = {
@@ -186,15 +188,15 @@ export default function AddButtonPage() {
                   className="tb-input tts-textarea"
                   placeholder={t('ttsTextPlaceholder')}
                   value={ttsText}
-                  onChange={(e) => setTtsText(e.target.value)}
+                  onChange={(e) => { setTtsText(e.target.value); setName(e.target.value); }}
                   autoFocus
                   maxLength={200}
                   rows={4}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && ttsText.trim()) setStep('name'); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && ttsText.trim()) setStep('image'); }}
                 />
                 <div className="step-actions">
                   <button className="tb-btn btn-cancel" onClick={() => navigate('/board')}>{t('cancel')}</button>
-                  <button className="tb-btn btn-primary" disabled={!ttsText.trim()} onClick={() => setStep('name')}>{t('next')}</button>
+                  <button className="tb-btn btn-primary" disabled={!ttsText.trim()} onClick={() => setStep('image')}>{t('next')}</button>
                 </div>
               </div>
             )}
@@ -234,7 +236,7 @@ export default function AddButtonPage() {
                   </div>
                 )}
                 <div className="step-actions">
-                  <button className="tb-btn btn-cancel" onClick={() => setStep('name')}>{t('back')}</button>
+                  <button className="tb-btn btn-cancel" onClick={() => setStep(imageStepBack)}>{t('back')}</button>
                   <button className="tb-btn btn-primary" onClick={() => setStep('color')}>{t('next')}</button>
                 </div>
               </div>

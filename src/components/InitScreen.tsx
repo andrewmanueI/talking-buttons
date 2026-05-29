@@ -76,10 +76,22 @@ async function probeTts(): Promise<CheckResult> {
 
   try {
     const result = await TextToSpeech.isLanguageSupported({ lang: 'id-ID' });
-    if (result.supported) {
-      return { name: 'tts', status: 'pass', message: 'TTS ready (id-ID)' };
+    let message = 'TTS ready';
+    if (result.supported) message = 'TTS ready (id-ID)';
+    else message = 'TTS available but id-ID voice data missing';
+
+    if (isNative) {
+      try {
+        const voices = await TextToSpeech.getSupportedVoices();
+        if (voices?.voices?.length) {
+          console.log('[TTS] Supported voices:', voices.voices.map((v: any) =>
+            `${v.name} (${v.lang})`
+          ).join(', '));
+        }
+      } catch {}
     }
-    return { name: 'tts', status: 'pass', message: 'TTS available but id-ID voice data missing' };
+
+    return { name: 'tts', status: 'pass', message };
   } catch (err: any) {
     if (isNative) {
       return { name: 'tts', status: 'fail', message: err?.message || String(err) };

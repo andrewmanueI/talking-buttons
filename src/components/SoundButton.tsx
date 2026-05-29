@@ -42,7 +42,7 @@ interface Props {
 
 export default function SoundButton({ button, onDelete, onRename }: Props) {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [playing, setPlaying] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
@@ -57,7 +57,7 @@ export default function SoundButton({ button, onDelete, onRename }: Props) {
 
     if (button.ttsText) {
       setPlaying(true);
-      TextToSpeech.speak({ text: button.ttsText, lang: 'id-ID' })
+      TextToSpeech.speak({ text: button.ttsText, lang: language === 'id' ? 'id-ID' : 'en-US' })
         .then(() => setPlaying(false))
         .catch(() => setPlaying(false));
       return;
