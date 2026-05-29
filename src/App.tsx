@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSettings } from './hooks/useSettings';
+import ErrorBoundary from './components/ErrorBoundary';
 import InitScreen from './components/InitScreen';
 import TopBar from './components/TopBar';
 import BoardPage from './pages/BoardPage';
@@ -37,20 +38,26 @@ export default function App() {
   const [splashDone, setSplashDone] = useState(false);
 
   if (!splashDone) {
-    return <InitScreen ready={!loading} onFinished={() => setSplashDone(true)} />;
+    return (
+      <ErrorBoundary>
+        <InitScreen ready={!loading} onFinished={() => setSplashDone(true)} />
+      </ErrorBoundary>
+    );
   }
 
   return (
-    <div className="app" data-bg-type={settings.backgroundType}>
-      <Background settings={settings} />
-      <TopBar />
-      <Routes>
-        <Route path="/" element={<Navigate to="/board" replace />} />
-        <Route path="/board" element={<BoardPage />} />
-        <Route path="/add" element={<AddButtonPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/presets" element={<PresetsPage />} />
-      </Routes>
-    </div>
+    <ErrorBoundary>
+      <div className="app" data-bg-type={settings.backgroundType}>
+        <Background settings={settings} />
+        <TopBar />
+        <Routes>
+          <Route path="/" element={<Navigate to="/board" replace />} />
+          <Route path="/board" element={<BoardPage />} />
+          <Route path="/add" element={<AddButtonPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/presets" element={<PresetsPage />} />
+        </Routes>
+      </div>
+    </ErrorBoundary>
   );
 }
