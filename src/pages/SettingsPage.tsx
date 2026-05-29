@@ -8,6 +8,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Toast from '../components/Toast';
 import type { BackgroundType, ExportData } from '../types';
 
+const isNative = !!(window as any).Capacitor;
+
 function resizeWallpaper(file: File, maxSize: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -103,14 +105,36 @@ export default function SettingsPage() {
   const handleExport = async () => {
     try {
       const data = await exportAllData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+      const json = JSON.stringify(data, null, 2);
       const filename = `talking-buttons-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+
+      if (isNative) {
+        const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+        const { Share } = await import('@capacitor/share');
+
+        const result = await Filesystem.writeFile({
+          path: filename,
+          data: json,
+          directory: Directory.Cache,
+          encoding: Encoding.UTF8,
+        });
+
+        await Share.share({
+          title: 'Talking Buttons Backup',
+          text: 'Talking Buttons backup file',
+          url: result.uri,
+          dialogTitle: 'Save backup',
+        });
+      } else {
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
       setToast(`Exported: ${filename}`);
     } catch (err) {
       console.error('[SettingsPage] export failed', err);
