@@ -2,10 +2,10 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../hooks/useSettings';
 import { useLanguage } from '../i18n/LanguageContext';
-import { clearAllData } from '../db';
+import { clearAllData, exportAllData, importAllData } from '../db';
 import AnimatedScreen from '../components/motion/AnimatedScreen';
 import ConfirmDialog from '../components/ConfirmDialog';
-import type { BackgroundType } from '../types';
+import type { BackgroundType, ExportData } from '../types';
 
 function resizeWallpaper(file: File, maxSize: number): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -50,8 +50,11 @@ export default function SettingsPage() {
   const { settings, update } = useSettings();
   const { t } = useLanguage();
   const [showReset, setShowReset] = useState(false);
+  const [importPending, setImportPending] = useState<ExportData | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
   const [wallpaperError, setWallpaperError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   const handleReset = async () => {
     await clearAllData();
@@ -92,6 +95,54 @@ export default function SettingsPage() {
     if (type === 'none') update({ backgroundType: 'none', backgroundImage: undefined });
     if (type === 'color') update({ backgroundType: 'color', backgroundImage: undefined });
     if (type === 'image') update({ backgroundType: 'image' });
+  };
+
+  const handleExport = async () => {
+    try {
+      const data = await exportAllData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `talking-buttons-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[SettingsPage] export failed', err);
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    setImportError(null);
+
+    try {
+      const text = await file.text();
+      const parsed: ExportData = JSON.parse(text);
+
+      if (!parsed || parsed.version !== 1 || !parsed.data) {
+        throw new Error('Invalid format');
+      }
+
+      setImportPending(parsed);
+    } catch (err) {
+      console.error('[SettingsPage] import parse failed', err);
+      setImportError(t('invalidImportFile'));
+    }
+
+    input.value = '';
+  };
+
+  const handleImportConfirm = async () => {
+    if (!importPending) return;
+    try {
+      await importAllData(importPending);
+      window.location.reload();
+    } catch (err) {
+      console.error('[SettingsPage] import failed', err);
+    }
   };
 
   return (
@@ -183,7 +234,19 @@ export default function SettingsPage() {
         <section className="settings-section">
           <h3 className="settings-heading">{t('data')}</h3>
           <p className="privacy-note">{t('privacyNote')}</p>
+          <div className="data-actions">
+            <button className="tb-btn btn-secondary" onClick={handleExport}>{t('exportData')}</button>
+            <button className="tb-btn btn-secondary" onClick={() => importFileRef.current?.click()}>{t('importData')}</button>
+            {importError && <p className="wallpaper-error">{importError}</p>}
+          </div>
           <button className="tb-btn btn-danger" onClick={() => setShowReset(true)}>{t('resetData')}</button>
+          <input
+            ref={importFileRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={handleImportFile}
+            style={{ display: 'none' }}
+          />
         </section>
 
         {showReset && (
@@ -194,6 +257,16 @@ export default function SettingsPage() {
             onConfirm={handleReset}
             onCancel={() => setShowReset(false)}
             danger
+          />
+        )}
+
+        {importPending && (
+          <ConfirmDialog
+            title={t('importConfirmTitle')}
+            message={t('importConfirmMsg')}
+            confirmLabel={t('importData')}
+            onConfirm={handleImportConfirm}
+            onCancel={() => setImportPending(null)}
           />
         )}
 

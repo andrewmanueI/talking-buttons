@@ -44,6 +44,26 @@ export const DEFAULT_SETTINGS: AppSettings = {
   volume: 1,
 };
 
+/** Serialized blob for JSON export (base64-encoded). */
+export interface AudioBlobData {
+  type: string;  // MIME type, e.g. "audio/webm;codecs=opus"
+  data: string;  // base64-encoded binary
+}
+
+/** Structure of the export JSON file. */
+export interface ExportData {
+  version: 1;
+  exportedAt: string;
+  data: {
+    buttons: (Omit<SoundButton, 'audioBlob'> & { audioBlob?: AudioBlobData })[];
+    settings: AppSettings | null;
+    presets: (Omit<SavedPreset, 'buttons'> & {
+      buttons: (Omit<PresetButton, 'audioBlob'> & { audioBlob?: AudioBlobData })[];
+    })[];
+    language: 'id' | 'en';
+  };
+}
+
 export const DEFAULT_BUTTON_COLOR = '#5b8c5a';
 export const BUTTON_COLORS = [
   '#5b8c5a', '#4a90d9', '#e67e22', '#9b59b6',

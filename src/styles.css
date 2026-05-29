@@ -1408,6 +1408,12 @@ html, body, #root {
   word-break: break-word;
 }
 
+.data-actions {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0;
+}
+
 .privacy-note {
   font-size: 13px;
   color: var(--color-text-secondary);

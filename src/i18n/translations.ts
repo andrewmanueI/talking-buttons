@@ -109,6 +109,11 @@ export const translations = {
     stepLabel_image: 'Gambar',
     stepLabel_color: 'Warna',
     stepLabel_preview: 'Simpan',
+    exportData: 'Ekspor Data',
+    importData: 'Impor Data',
+    importConfirmTitle: 'Impor Data?',
+    importConfirmMsg: 'Ini akan mengganti semua tombol, preset, dan pengaturan saat ini dengan data dari file. Tindakan ini tidak bisa dibatalkan.',
+    invalidImportFile: 'File tidak valid. Pilih file hasil ekspor dari aplikasi Talking Buttons.',
   },
   en: {
     addButton: 'Add Button',
@@ -217,5 +222,10 @@ export const translations = {
     stepLabel_image: 'Image',
     stepLabel_color: 'Color',
     stepLabel_preview: 'Save',
+    exportData: 'Export Data',
+    importData: 'Import Data',
+    importConfirmTitle: 'Import Data?',
+    importConfirmMsg: 'This will replace all current buttons, presets, and settings with data from the file. This cannot be undone.',
+    invalidImportFile: 'Invalid file. Please select a file exported from Talking Buttons.',
   },
 } as const;
