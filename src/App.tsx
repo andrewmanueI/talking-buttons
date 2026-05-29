@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSettings } from './hooks/useSettings';
+import SplashScreen from './components/SplashScreen';
 import TopBar from './components/TopBar';
 import BoardPage from './pages/BoardPage';
 import AddButtonPage from './pages/AddButtonPage';
@@ -32,9 +34,10 @@ function Background({ settings }: { settings: ReturnType<typeof useSettings>['se
 
 export default function App() {
   const { settings, loading } = useSettings();
+  const [splashDone, setSplashDone] = useState(false);
 
-  if (loading) {
-    return <div className="app-loading">Loading...</div>;
+  if (!splashDone) {
+    return <SplashScreen ready={!loading} onFinished={() => setSplashDone(true)} />;
   }
 
   return (
