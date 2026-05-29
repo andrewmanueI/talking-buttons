@@ -13,13 +13,6 @@ interface CheckResult {
   message: string;
 }
 
-interface LogEntry {
-  id: number;
-  timestamp: string;
-  text: string;
-  kind: CheckStatus;
-}
-
 type Phase = 'checking' | 'blocked' | 'fade-out' | 'done';
 
 interface Props {
@@ -28,22 +21,13 @@ interface Props {
   onFinished: () => void;
 }
 
-// ── Helpers ────────────────────────────────────────────────
+// ── Labels ────────────────────────────────────────────────
 
 const CHECK_LABELS: Record<CheckName, string> = {
   db:    'IndexedDB',
   mic:   'Microphone',
   audio: 'Audio Output',
 };
-
-function fmtTime(): string {
-  const d = new Date();
-  return [d.getHours(), d.getMinutes(), d.getSeconds()]
-    .map((n) => String(n).padStart(2, '0'))
-    .join(':');
-}
-
-let _logId = 0;
 
 // ── Probes ─────────────────────────────────────────────────
 
@@ -97,14 +81,12 @@ async function probeAudioOutput(): Promise<CheckResult> {
     ctx = ac;
     if (ac.state === 'suspended') await ac.resume();
 
-    // Play a silent 1-sample buffer to exercise the full audio pipeline
     const buffer = ac.createBuffer(1, 1, ac.sampleRate);
     const source = ac.createBufferSource();
     source.buffer = buffer;
     source.connect(ac.destination);
     source.start(0);
 
-    // Wait for the silent buffer to complete
     await new Promise((r) => setTimeout(r, 100));
     await ac.close();
     ctx = null;
@@ -134,18 +116,9 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
     mic:   { name: 'mic',   status: 'pending', message: '' },
     audio: { name: 'audio', status: 'pending', message: '' },
   });
-  const [logs, setLogs] = useState<LogEntry[]>([]);
   const mountTime = useRef(Date.now());
   const finishedRef = useRef(false);
-  const logEndRef = useRef<HTMLDivElement>(null);
   const blockedCheck = useRef<CheckName | null>(null);
-
-  // ── Logging helper ─────────────────────────────────────
-
-  const addLog = useCallback((text: string, kind: CheckStatus) => {
-    const entry: LogEntry = { id: ++_logId, timestamp: fmtTime(), text, kind };
-    setLogs((prev) => [...prev, entry]);
-  }, []);
 
   // ── Probe runner ───────────────────────────────────────
 
@@ -155,45 +128,26 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
       ['mic',   probeMicrophone],
       ['audio', probeAudioOutput],
     ];
-    addLog('── init ──', 'pending');
 
     for (const [name, fn] of probes) {
-      // Mark running
       setChecks((prev) => ({ ...prev, [name]: { ...prev[name], status: 'running' } }));
-      addLog(`${CHECK_LABELS[name]}...`, 'running');
 
       const result = await fn();
-
       setChecks((prev) => ({ ...prev, [name]: result }));
-      addLog(`${CHECK_LABELS[name]}: ${result.status === 'pass' ? 'OK' : 'FAIL'}`, result.status);
 
       if (result.status === 'fail') {
-        addLog(`  ${result.message}`, 'fail');
         blockedCheck.current = name;
         setPhase('blocked');
         return;
       }
-
-      if (result.message) {
-        addLog(`  ${result.message}`, 'pass');
-      }
     }
-
-    // All passed — wait for ready + minDuration
-    addLog('All checks passed', 'pass');
-  }, [addLog]);
+  }, []);
 
   // ── Run probes once on mount ───────────────────────────
 
   useEffect(() => {
     runProbes();
   }, [runProbes]);
-
-  // ── Auto-scroll log ────────────────────────────────────
-
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs]);
 
   // ── Fade-out on success ────────────────────────────────
 
@@ -234,7 +188,6 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
       mic:   { name: 'mic',   status: 'pending', message: '' },
       audio: { name: 'audio', status: 'pending', message: '' },
     });
-    setLogs([]);
     setPhase('checking');
     runProbes();
   }, [runProbes]);
@@ -252,30 +205,12 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
       className={`init-screen${phase === 'fade-out' ? ' init-exiting' : ''}`}
       onAnimationEnd={phase === 'fade-out' ? handleAnimationEnd : undefined}
     >
-      {/* Icon */}
       <div className="init-icon-wrap">
-        <div className="init-icon">
-          <AppIcon />
-        </div>
+        <AppIcon />
       </div>
 
-      {/* Title */}
       <h1 className="init-title">Talking Buttons</h1>
 
-      {/* Log area */}
-      <div className="init-log">
-        {logs.map((entry) => (
-          <div key={entry.id} className={`init-log-line kind-${entry.kind}`}>
-            [{entry.timestamp}] {entry.text}
-          </div>
-        ))}
-        {phase === 'checking' && (
-          <div className="init-log-line kind-running">_</div>
-        )}
-        <div ref={logEndRef} />
-      </div>
-
-      {/* Blocked card */}
       {phase === 'blocked' && failedCheck && (
         <div className="init-blocked">
           <div className="init-blocked-title">{CHECK_LABELS[failedCheck.name]} Failed</div>
@@ -286,7 +221,6 @@ export default function InitScreen({ ready, minDuration = 1800, onFinished }: Pr
         </div>
       )}
 
-      {/* Dots (only while checking) */}
       {phase === 'checking' && (
         <div className="init-dots">
           <span className="init-dot" style={{ animationDelay: '0ms' }} />

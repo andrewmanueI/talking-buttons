@@ -81,37 +81,6 @@ html, body, #root {
   animation: fade-in 300ms ease 200ms both;
 }
 
-/* ── Log area ──────────────────────────────────────────── */
-.init-log {
-  width: 88%;
-  max-width: 380px;
-  height: 156px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background: #101018;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
-  font-size: 10.5px;
-  line-height: 1.55;
-  color: #98c379;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.45);
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  animation: fade-in 300ms ease 300ms both;
-}
-
-.init-log-line {
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.init-log-line.kind-running { color: #e5c07b; }
-.init-log-line.kind-pass    { color: #98c379; }
-.init-log-line.kind-fail    { color: #e06c75; }
-.init-log-line.kind-pending { color: #5c6370; }
-
 /* ── Blocked error card ────────────────────────────────── */
 .init-blocked {
   width: 88%;
