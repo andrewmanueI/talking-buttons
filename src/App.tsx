@@ -33,7 +33,7 @@ function Background({ settings }: { settings: ReturnType<typeof useSettings>['se
   );
 }
 
-const APP_VERSION = '1.1.11';
+const APP_VERSION = '1.1.12';
 
 function logAppInfo() {
   const isNative = !!(window as any).Capacitor;
