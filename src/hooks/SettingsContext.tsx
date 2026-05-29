@@ -21,11 +21,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const saved = await getSettings();
-      if (saved) {
-        setSettings((prev) => ({ ...prev, ...saved }));
+      try {
+        const saved = await getSettings();
+        if (saved) {
+          setSettings((prev) => ({ ...prev, ...saved }));
+        }
+      } catch (err) {
+        console.error('SettingsContext: failed to load settings', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, []);
 

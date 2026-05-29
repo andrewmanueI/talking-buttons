@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSettings } from './hooks/useSettings';
-import SplashScreen from './components/SplashScreen';
+import InitScreen from './components/InitScreen';
 import TopBar from './components/TopBar';
 import BoardPage from './pages/BoardPage';
 import AddButtonPage from './pages/AddButtonPage';
@@ -37,7 +37,7 @@ export default function App() {
   const [splashDone, setSplashDone] = useState(false);
 
   if (!splashDone) {
-    return <SplashScreen ready={!loading} onFinished={() => setSplashDone(true)} />;
+    return <InitScreen ready={!loading} onFinished={() => setSplashDone(true)} />;
   }
 
   return (

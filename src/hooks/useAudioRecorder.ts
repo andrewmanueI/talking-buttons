@@ -10,7 +10,7 @@ export interface RecorderError {
 
 // Android-friendly audio constraints. Explicit sampleRate and channelCount
 // prevent "Could not start Audio Source" on Android WebView / Capacitor.
-const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
+export const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   echoCancellation: true,
   noiseSuppression: true,
   sampleRate: 44100,
@@ -32,7 +32,7 @@ function supportsMime(mime: string): boolean {
   return MediaRecorder.isTypeSupported(mime);
 }
 
-function classifyError(err: any): RecorderError {
+export function classifyError(err: any): RecorderError {
   const name: string = err?.name ?? '';
   const message: string = err?.message ?? '';
 
@@ -60,7 +60,7 @@ function classifyError(err: any): RecorderError {
 }
 
 // Safe teardown of a MediaStream.
-function stopStream(s: MediaStream | null) {
+export function stopStream(s: MediaStream | null) {
   if (!s) return;
   s.getTracks().forEach((t) => t.stop());
 }
